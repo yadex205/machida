@@ -1,0 +1,15 @@
+{
+  "name": "machida",
+  "version": "0.0.0",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yadex205/machida.git"
+  },
+  "author": "Kanon Kakuno <yadex205@outlook.jp>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yadex205/machida/issues"
+  },
+  "homepage": "https://github.com/yadex205/machida#readme"
+}
