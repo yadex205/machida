@@ -1,3 +1,5 @@
+import { parseAribStdB24 } from 'arib-std-b24';
+
 export const PID_PAT = 0x0000;
 export const PID_SDT_BAT = 0x0011;
 
@@ -207,10 +209,10 @@ export function parseTsServiceDescriptorData({ data }: TsDescriptor): TsServiceD
   return {
     serviceType,
     serviceProviderNameLength,
-    serviceProviderName: data.slice(2, 2 + serviceProviderNameLength).toString('hex'),
+    serviceProviderName: parseAribStdB24(data.slice(2, 2 + serviceProviderNameLength)),
     serviceNameLength,
-    serviceName: data
-      .slice(3 + serviceProviderNameLength, 3 + serviceProviderNameLength + serviceNameLength)
-      .toString('hex'),
+    serviceName: parseAribStdB24(
+      data.slice(3 + serviceProviderNameLength, 3 + serviceProviderNameLength + serviceNameLength)
+    ),
   };
 }
