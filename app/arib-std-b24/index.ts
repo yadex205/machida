@@ -1,4 +1,6 @@
 import { jisx0213Table } from './jisx0213';
+import { jisx0201AlphanumericTable, jisx0201KatakanaTable } from './jisx0201';
+import { convertHankakuToZenkaku, convertZenkakuToHankaku } from './zenkaku-hankaku';
 
 type AribStdB24Area = 'c0' | 'c1' | 'gl' | 'gr';
 type AribStdB24Buffer = 'g0' | 'g1' | 'g2' | 'g3';
@@ -87,17 +89,34 @@ type CharCode2String = Record<
   undefined | Record<AribStdB24CharSize, undefined | ((charCode: number) => string)>
 >;
 
+const kanjiNormalTable = Object.fromEntries(
+  Object.entries(jisx0213Table).map(([key, value]) => [key, convertHankakuToZenkaku(value)])
+);
+const kanjiMiddleTable = Object.fromEntries(
+  Object.entries(jisx0213Table).map(([key, value]) => [key, convertZenkakuToHankaku(value)])
+);
+const alphanumericNormalTable = Object.fromEntries(
+  Object.entries(jisx0201AlphanumericTable).map(([key, value]) => [key, convertHankakuToZenkaku(value)])
+);
+const alphanumericMiddleTable = Object.fromEntries(
+  Object.entries(jisx0201AlphanumericTable).map(([key, value]) => [key, convertZenkakuToHankaku(value)])
+);
+const jisx0201KatakanaNormalTable = Object.fromEntries(
+  Object.entries(jisx0201KatakanaTable).map(([key, value]) => [key, convertHankakuToZenkaku(value)])
+);
+const jisx0201KatakanaMiddleTable = Object.fromEntries(
+  Object.entries(jisx0201KatakanaTable).map(([key, value]) => [key, convertZenkakuToHankaku(value)])
+);
+
 const charCode2String: CharCode2String = {
   kanji: {
-    normal: charCode => {
-      return jisx0213Table[charCode] || '';
-    },
-    middle: charCode => {
-      charCode;
-      return '';
-    },
+    normal: charCode => kanjiNormalTable[charCode] || '',
+    middle: charCode => kanjiMiddleTable[charCode] || '',
   },
-  alphanumeric: undefined,
+  alphanumeric: {
+    normal: charCode => alphanumericNormalTable[charCode] || '',
+    middle: charCode => alphanumericMiddleTable[charCode] || '',
+  },
   hiragana: undefined,
   katakana: undefined,
   'mosaic-a': undefined,
@@ -107,7 +126,10 @@ const charCode2String: CharCode2String = {
   'proportional-alphanumeric': undefined,
   'proportional-hiragana': undefined,
   'proportional-katakana': undefined,
-  'jisx0201-katakana': undefined,
+  'jisx0201-katakana': {
+    normal: charCode => jisx0201KatakanaNormalTable[charCode] || '',
+    middle: charCode => jisx0201KatakanaMiddleTable[charCode] || '',
+  },
   'jis-compatible-kanji-plane-1': undefined,
   'jis-compatible-kanji-plane-2': undefined,
   'additional-symbols': undefined,
