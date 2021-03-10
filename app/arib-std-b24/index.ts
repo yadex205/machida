@@ -1,5 +1,7 @@
+import { hiraganaTable } from './hiragana';
 import { jisx0213Table } from './jisx0213';
 import { jisx0201AlphanumericTable, jisx0201KatakanaTable } from './jisx0201';
+import { katakanaTable } from './katakana';
 import { convertHankakuToZenkaku, convertZenkakuToHankaku } from './zenkaku-hankaku';
 
 type AribStdB24Area = 'c0' | 'c1' | 'gl' | 'gr';
@@ -101,6 +103,12 @@ const alphanumericNormalTable = Object.fromEntries(
 const alphanumericMiddleTable = Object.fromEntries(
   Object.entries(jisx0201AlphanumericTable).map(([key, value]) => [key, convertZenkakuToHankaku(value)])
 );
+const katakanaNormalTable = Object.fromEntries(
+  Object.entries(katakanaTable).map(([key, value]) => [key, convertHankakuToZenkaku(value)])
+);
+const katakanaMiddleTable = Object.fromEntries(
+  Object.entries(katakanaTable).map(([key, value]) => [key, convertZenkakuToHankaku(value)])
+);
 const jisx0201KatakanaNormalTable = Object.fromEntries(
   Object.entries(jisx0201KatakanaTable).map(([key, value]) => [key, convertHankakuToZenkaku(value)])
 );
@@ -117,15 +125,30 @@ const charCode2String: CharCode2String = {
     normal: charCode => alphanumericNormalTable[charCode] || '',
     middle: charCode => alphanumericMiddleTable[charCode] || '',
   },
-  hiragana: undefined,
-  katakana: undefined,
+  hiragana: {
+    normal: charCode => hiraganaTable[charCode] || '',
+    middle: charCode => hiraganaTable[charCode] || '',
+  },
+  katakana: {
+    normal: charCode => katakanaNormalTable[charCode] || '',
+    middle: charCode => katakanaMiddleTable[charCode] || '',
+  },
   'mosaic-a': undefined,
   'mosaic-b': undefined,
   'mosaic-c': undefined,
   'mosaic-d': undefined,
-  'proportional-alphanumeric': undefined,
-  'proportional-hiragana': undefined,
-  'proportional-katakana': undefined,
+  'proportional-alphanumeric': {
+    normal: charCode => alphanumericNormalTable[charCode] || '',
+    middle: charCode => alphanumericMiddleTable[charCode] || '',
+  },
+  'proportional-hiragana': {
+    normal: charCode => hiraganaTable[charCode] || '',
+    middle: charCode => hiraganaTable[charCode] || '',
+  },
+  'proportional-katakana': {
+    normal: charCode => katakanaNormalTable[charCode] || '',
+    middle: charCode => katakanaMiddleTable[charCode] || '',
+  },
   'jisx0201-katakana': {
     normal: charCode => jisx0201KatakanaNormalTable[charCode] || '',
     middle: charCode => jisx0201KatakanaMiddleTable[charCode] || '',
@@ -184,7 +207,7 @@ export function parseAribStdB24(buf: Buffer) {
       const area = firstByte >>> 7 === 1 ? 'gr' : 'gl';
       const symbolSet = designations[singleShiftInvocations[area] || lockingShiftInvocations[area]];
 
-      const charCode = buf.readUIntBE(head, symbolSet.length);
+      const charCode = buf.readUIntBE(head, symbolSet.length) & 0b0111111101111111;
       result += (symbolSet.name && charCode2String[symbolSet.name]?.[charSize]?.(charCode)) || '';
 
       head += symbolSet.length;
