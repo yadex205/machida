@@ -1,67 +1,66 @@
 import { createReadStream } from 'fs';
 import { resolve } from 'path';
-import { getNativeBufferOfBinaryData } from 'binary-data';
 import {
   PID_PAT,
   PID_SDT_BAT,
   PID_EIT,
-  packetParser,
+  parseDescriptors,
+  parseEventInformationSectionBody,
+  parseProgramAssociationSectionBody,
+  parseServiceDescriptionSectionBody,
+  parseExtendedEventDescriptorBody,
+  parseServiceDescriptorBody,
+  FileStreamProcessor,
   PsiSiPacketProcessor,
-  eventInformationTableSectionBodyParser,
-  programAssociationTableSectionBodyParser,
-  serviceDescriptionTableSectionBodyParser,
-  descriptorsParser,
-  serviceDescriptorBodyParser,
 } from 'arib-std-b10';
-import { parseAribStdB24 } from 'arib-std-b24';
 
 const file = resolve(__dirname, '../test-files/test.ts');
-const fileReadSteram = createReadStream(file, { highWaterMark: 188 * 100 });
+const fileReadSteram = createReadStream(file, { highWaterMark: 1024 * 256 });
 
 const patProcessor = new PsiSiPacketProcessor();
 const sdtBatProcessor = new PsiSiPacketProcessor();
 const eitProcessor = new PsiSiPacketProcessor();
 
-fileReadSteram.on('data', (chunk: Buffer) => {
-  for (let offset = 0; offset < chunk.length; offset += 188) {
-    const packet = packetParser.parse({ buf: chunk, byteOffset: offset, byteLength: 188 }, {});
+const processor = new FileStreamProcessor(fileReadSteram);
 
-    if (packet.pid === PID_PAT) {
-      const section = patProcessor.processPacket(packet);
-      if (section) {
-        programAssociationTableSectionBodyParser.parse(section.body, section);
-      }
-    } else if (packet.pid === PID_SDT_BAT) {
-      const section = sdtBatProcessor.processPacket(packet);
+processor.on('packet', packet => {
+  if (packet.pid === PID_PAT) {
+    patProcessor.feed(packet);
+  } else if (packet.pid === PID_SDT_BAT) {
+    sdtBatProcessor.feed(packet);
+  } else if (packet.pid === PID_EIT) {
+    eitProcessor.feed(packet);
+  }
+});
 
-      if (section?.tableId === 0x42 || section?.tableId === 0x46) {
-        const sdt = serviceDescriptionTableSectionBodyParser.parse(section.body, section);
-        sdt.services.forEach(service => {
-          const descriptors = descriptorsParser.parse(service.descriptors, {
-            totalByteLength: service.descriptorsLoopLength,
-          });
-          descriptors.list.forEach(descriptor => {
-            if (descriptor.tag === 0x48) {
-              const serviceDescriptor = serviceDescriptorBodyParser.parse(descriptor.body, {});
-              const serviceName = parseAribStdB24(getNativeBufferOfBinaryData(serviceDescriptor.serviceName));
-              serviceName;
-            }
-          });
-        });
-      }
-    } else if (packet.pid === PID_EIT) {
-      const section = eitProcessor.processPacket(packet);
+patProcessor.on('section', section => {
+  parseProgramAssociationSectionBody(section);
+});
 
-      if (section?.tableId === 0x4e) {
-        const eit = eventInformationTableSectionBodyParser.parse(section.body, section);
+sdtBatProcessor.on('section', section => {
+  if (section.tableId === 0x42) {
+    const { services } = parseServiceDescriptionSectionBody(section);
+    services.forEach(service => {
+      const descriptors = parseDescriptors(service.descriptors);
+      descriptors.forEach(descriptor => {
+        if (descriptor.tag === 0x48) {
+          parseServiceDescriptorBody(descriptor);
+        }
+      });
+    });
+  }
+});
 
-        eit.events.forEach(event => {
-          const descriptors = descriptorsParser.parse(event.descriptors, {
-            totalByteLength: event.descriptorsLoopLength,
-          });
-          console.log(descriptors);
-        });
-      }
-    }
+eitProcessor.on('section', section => {
+  if (section.tableId === 0x4e) {
+    const { events } = parseEventInformationSectionBody(section);
+    events.forEach(event => {
+      const descriptors = parseDescriptors(event.descriptors);
+      descriptors.forEach(descriptor => {
+        if (descriptor.tag === 0x4e) {
+          parseExtendedEventDescriptorBody(descriptor);
+        }
+      });
+    });
   }
 });

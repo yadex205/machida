@@ -1,19 +1,17 @@
-import { BinaryData } from 'binary-data';
-
 interface BinaryStructureEntity<V, C> {
   type: string;
   existsWhen?: (values: V, context: C) => boolean;
 }
 
-interface BinaryDataBinaryStructureEntity<V, C> extends BinaryStructureEntity<V, C> {
-  bitLength: number | ((values: V, context: C, scopedValue: any) => number);
-  id: string;
-  type: 'binary-data';
-}
-
 interface IgnoreBinaryStructureEntity<V, C> extends BinaryStructureEntity<V, C> {
   bitLength: number | ((values: V, context: C, scopedValue: any) => number);
   type: 'ignore';
+}
+
+interface RawBinaryStructureEntity<V, C> extends BinaryStructureEntity<V, C> {
+  bitLength: number | ((values: V, context: C, scopedValue: any) => number);
+  id: string;
+  type: 'raw';
 }
 
 interface UIntBinaryStructureEntity<V, C> extends BinaryStructureEntity<V, C> {
@@ -36,8 +34,8 @@ interface TableBinaryStructureEntity<V, C> extends BinaryStructureEntity<V, C> {
 }
 
 type AnyTypeBinaryStructureEntity<V, C> =
-  | BinaryDataBinaryStructureEntity<V, C>
   | IgnoreBinaryStructureEntity<V, C>
+  | RawBinaryStructureEntity<V, C>
   | UIntBinaryStructureEntity<V, C>
   | ArrayBinaryStructureEntity<V, C>
   | TableBinaryStructureEntity<V, C>;
@@ -51,14 +49,14 @@ export class BinaryStructureParser<V = any, C = any> {
     this.structure = structure;
   }
 
-  public parse(bin: BinaryData, context: C): V {
+  public parse(buf: Buffer, context: C): V {
     const value: any = {};
-    this.parseScoped(bin, context, this.structure, value);
+    this.parseScoped(buf, context, this.structure, value);
     return value;
   }
 
   private parseScoped(
-    scopedBin: BinaryData,
+    scopedBuf: Buffer,
     context: C,
     scopedStructure: BinaryStructure<any, C>,
     entireValue: any = {},
@@ -71,15 +69,11 @@ export class BinaryStructureParser<V = any, C = any> {
         return;
       }
 
-      if (entity.type === 'binary-data') {
+      if (entity.type === 'raw') {
         const bitLength =
           typeof entity.bitLength === 'number' ? entity.bitLength : entity.bitLength(entireValue, context, scopedValue);
 
-        scopedValue[entity.id] = {
-          buf: scopedBin.buf,
-          byteOffset: scopedBin.byteOffset + bitPosition / 8,
-          byteLength: bitLength / 8,
-        };
+        scopedValue[entity.id] = scopedBuf.slice(bitPosition / 8, bitPosition / 8 + bitLength / 8);
         bitPosition += bitLength;
       } else if (entity.type === 'ignore') {
         const bitLength =
@@ -91,10 +85,7 @@ export class BinaryStructureParser<V = any, C = any> {
           typeof entity.bitLength === 'number' ? entity.bitLength : entity.bitLength(entireValue, context, scopedValue);
         const readByteSince = Math.floor(bitPosition / 8);
         const readByteUntil = Math.ceil((bitPosition + bitLength) / 8);
-        const rawReadValue = scopedBin.buf.readUIntBE(
-          scopedBin.byteOffset + readByteSince,
-          readByteUntil - readByteSince
-        );
+        const rawReadValue = scopedBuf.readUIntBE(readByteSince, readByteUntil - readByteSince);
         scopedValue[entity.id] =
           (rawReadValue >>> (readByteUntil * 8 - (bitPosition + bitLength))) & (2 ** bitLength - 1);
         bitPosition += bitLength;
@@ -107,13 +98,9 @@ export class BinaryStructureParser<V = any, C = any> {
         let index = 0;
         while (bitPosition < bitPositionUntil) {
           scopedValue[entity.id][index] = {};
-          const nextScopedBin = {
-            buf: scopedBin.buf,
-            byteOffset: scopedBin.byteOffset + bitPosition / 8,
-            byteLength: scopedBin.byteLength - bitPosition / 8,
-          };
+          const nextScopedBuf = scopedBuf.slice(bitPosition / 8);
           const { readBitLength } = this.parseScoped(
-            nextScopedBin,
+            nextScopedBuf,
             context,
             entity.children,
             entireValue,
@@ -125,13 +112,9 @@ export class BinaryStructureParser<V = any, C = any> {
         }
       } else if (entity.type === 'table') {
         scopedValue[entity.id] = {};
-        const nextScopedBin = {
-          buf: scopedBin.buf,
-          byteOffset: scopedBin.byteOffset + bitPosition / 8,
-          byteLength: scopedBin.byteLength - bitPosition / 8,
-        };
+        const nextScopedBuf = scopedBuf.slice(bitPosition / 8);
         const { readBitLength } = this.parseScoped(
-          nextScopedBin,
+          nextScopedBuf,
           context,
           entity.children,
           entireValue,
