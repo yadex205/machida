@@ -40,7 +40,7 @@ export const binaryStructureParser = new BinaryStructureParser<BinaryStructure>(
 interface ExtendedEventDescriptorBody {
   descriptorNumber: number;
   lastDescriptorNumber: number;
-  iso639LanguageCode: Buffer;
+  iso639LanguageCode: string;
   items: {
     itemDescription: string;
     item: string;
@@ -56,7 +56,7 @@ export function parseExtendedEventDescriptorBody(descriptor: Descriptor): Extend
   return {
     descriptorNumber,
     lastDescriptorNumber,
-    iso639LanguageCode,
+    iso639LanguageCode: iso639LanguageCode.toString('latin1'),
     items: items.map(item => ({
       itemDescription: parseAribStdB24(item.itemDescription),
       item: parseAribStdB24(item.item),
