@@ -2,6 +2,7 @@ import { hiraganaTable } from './hiragana';
 import { jisx0213Table } from './jisx0213';
 import { jisx0201AlphanumericTable, jisx0201KatakanaTable } from './jisx0201';
 import { katakanaTable } from './katakana';
+import { additionalSymbolsTable } from './additional-symbols';
 import { convertHankakuToZenkaku, convertZenkakuToHankaku } from './zenkaku-hankaku';
 
 type AribStdB24Area = 'c0' | 'c1' | 'gl' | 'gr';
@@ -153,9 +154,18 @@ const charCode2String: CharCode2String = {
     normal: charCode => jisx0201KatakanaNormalTable[charCode] || '',
     middle: charCode => jisx0201KatakanaMiddleTable[charCode] || '',
   },
-  'jis-compatible-kanji-plane-1': undefined,
-  'jis-compatible-kanji-plane-2': undefined,
-  'additional-symbols': undefined,
+  'jis-compatible-kanji-plane-1': {
+    normal: charCode => kanjiNormalTable[charCode] || '',
+    middle: charCode => kanjiMiddleTable[charCode] || '',
+  },
+  'jis-compatible-kanji-plane-2': {
+    normal: charCode => kanjiNormalTable[charCode] || '',
+    middle: charCode => kanjiMiddleTable[charCode] || '',
+  },
+  'additional-symbols': {
+    normal: charCode => additionalSymbolsTable[charCode] || '',
+    middle: charCode => additionalSymbolsTable[charCode] || '',
+  },
   'drcs-0': undefined,
   'drcs-1': undefined,
   'drcs-2': undefined,
@@ -203,12 +213,19 @@ export function parseAribStdB24(buf: Buffer) {
     previousHead = head;
     const firstByte = buf.readUIntBE(head, 1);
 
-    if ((firstByte & 0b01100000) > 0) {
+    if (firstByte === 0b00100000) {
+      result += charSize === 'normal' ? '　' : ' ';
+      head += 1;
+      singleShiftInvocations.gl = undefined;
+      singleShiftInvocations.gr = undefined;
+    } else if ((firstByte & 0b01100000) > 0) {
       const area = firstByte >>> 7 === 1 ? 'gr' : 'gl';
       const symbolSet = designations[singleShiftInvocations[area] || lockingShiftInvocations[area]];
 
       const charCode = buf.readUIntBE(head, symbolSet.length) & 0b0111111101111111;
-      result += (symbolSet.name && charCode2String[symbolSet.name]?.[charSize]?.(charCode)) || '';
+      const char = symbolSet.name && charCode2String[symbolSet.name]?.[charSize]?.(charCode);
+
+      result += char || '�';
 
       head += symbolSet.length;
       singleShiftInvocations.gl = undefined;

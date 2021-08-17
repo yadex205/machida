@@ -9,7 +9,7 @@ const jisx0213TableParser = parse({
   columns: ['jis', 'unicode'],
   comment: '#',
   delimiter: '\t',
-  from: 22,
+  from: 0,
   ignore_last_delimiters: true,
   skip_empty_lines: true,
   skip_lines_with_error: true,
