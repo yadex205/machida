@@ -13,8 +13,8 @@
   },
   "homepage": "https://github.com/yadex205/machida#readme",
   "scripts": {
-    "start": "ts-node -r tsconfig-paths/register app/index.ts",
-    "create-arib-std-b24-convert-tables": "ts-node -r tsconfig-paths/register scripts/create-arib-std-b24-convert-tables.ts",
+    "start": "ts-node -T -r tsconfig-paths/register app/index.ts",
+    "create-arib-std-b24-convert-tables": "ts-node -T -r tsconfig-paths/register scripts/create-arib-std-b24-convert-tables.ts",
     "lint": "eslint ./app --ext .ts --color"
   },
   "dependencies": {
