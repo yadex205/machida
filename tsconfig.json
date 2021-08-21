@@ -1,11 +1,11 @@
 {
-  "include": ["app/**/*", "scripts/**/*"],
+  "include": ["scripts/**/*", "src/**/*"],
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
     "baseUrl": ".",
     "paths": {
-      "*": ["app/*"]
+      "*": ["src/*"]
     },
     "lib": ["esnext"],
     "strict": true,
