@@ -8,7 +8,7 @@ import {
 } from './automations';
 import { db } from 'server/db';
 import { FileStreamProcessor, PsiSiPacketProcessor } from 'lib/arib-std-b10';
-import { runRecpt1 } from 'server/recpt1';
+import { listenBroadcast } from 'lib/broadcast';
 
 const parseMetaStream = (stream: Readable) => {
   const processor = new FileStreamProcessor(stream);
@@ -54,10 +54,10 @@ const parseMetaStream = (stream: Readable) => {
   for (let channel = 13; channel <= 52; channel++) {
     console.log('channel: ', channel);
     try {
-      const recpt1 = await runRecpt1({ channel, device: '/dev/px4video3' });
-      parseMetaStream(recpt1.stdout);
+      const broadcast = await listenBroadcast({ channel, device: '/dev/px4video3' });
+      parseMetaStream(broadcast.stream);
       await promiseTimers.setTimeout(5000);
-      await recpt1.kill();
+      await broadcast.stop();
     } catch {}
   }
 })();
