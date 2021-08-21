@@ -14,6 +14,7 @@ import {
   FileStreamProcessor,
   PsiSiPacketProcessor,
 } from 'arib-std-b10';
+import { db } from 'db';
 
 const file = resolve(__dirname, '../test-files/test.ts');
 const fileReadSteram = createReadStream(file, { highWaterMark: 1024 * 256 });
@@ -58,7 +59,7 @@ eitProcessor.on('section', section => {
     const eventInformation = parseEventInformationSectionBody(section);
     const { serviceId } = eventInformation;
 
-    const events = eventInformation.events.map(event => {
+    eventInformation.events.forEach(event => {
       const eventNameOfLanguages: Record<string, string> = {};
       const summaryOfLanguages: Record<string, string> = {};
       const detailsOfLanguages: Record<string, { subject: string; content: string }[]> = {};
@@ -87,24 +88,46 @@ eitProcessor.on('section', section => {
           items.forEach(({ contentNibbleLevel1, contentNibbleLevel2 }) => {
             genres.push({ genre: contentNibbleLevel1, subGenre: contentNibbleLevel2 });
           });
+        } else {
+          console.error('Unexpected descriptor', descriptor.tag.toString(16));
         }
       });
 
       const { eventId, startTime, duration } = event;
 
-      return {
-        id: eventId,
-        serviceId,
-        startTime,
-        duration,
-        eventName: eventNameOfLanguages,
-        summary: summaryOfLanguages,
-        details: detailsOfLanguages,
-        additionalDescription: additionalDescriptionOfLanguages,
-        genres,
-      };
+      const eventDoc = db.events.findOne({ serviceId: { $eq: serviceId }, eventId: { $eq: eventId } });
+      if (!eventDoc) {
+        db.events.insert({
+          serviceId,
+          eventId,
+          schedule: {
+            start: startTime,
+            duration,
+          },
+          name: eventNameOfLanguages,
+          summary: summaryOfLanguages,
+          detail: detailsOfLanguages,
+          additionalDescription: additionalDescriptionOfLanguages,
+          genres,
+        });
+      } else {
+        db.events.update({
+          ...eventDoc,
+          schedule: {
+            start: startTime,
+            duration,
+          },
+          name: eventNameOfLanguages,
+          summary: summaryOfLanguages,
+          detail: detailsOfLanguages,
+          additionalDescription: additionalDescriptionOfLanguages,
+          genres,
+        });
+      }
     });
-
-    events;
   }
+});
+
+processor.on('end', () => {
+  // db.printEvents();
 });
