@@ -29,6 +29,10 @@ export interface Event {
   }[];
 }
 
+export interface Network {
+  networkId: number;
+}
+
 export interface Service {
   originalNetworkId: number;
   transportStreamId: number;
@@ -42,11 +46,16 @@ const events = machidaDb.addCollection<Event>('events', {
   indices: ['originalNetworkId', 'transportStreamId', 'serviceId', 'eventId'],
 });
 
+const networks = machidaDb.addCollection<Network>('networks', {
+  indices: ['networkId'],
+});
+
 const services = machidaDb.addCollection<Service>('services', {
   indices: ['originalNetworkId', 'transportStreamId', 'serviceId'],
 });
 
 export const db = {
   events,
+  networks,
   services,
 };

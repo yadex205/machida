@@ -1,5 +1,6 @@
 import {
   parseEventInformationSectionBody,
+  parseNetworkInformationSectionBody,
   parseServiceDescriptionSectionBody,
   parseDescriptors,
   parseComponentDescriptorBody,
@@ -9,7 +10,7 @@ import {
   parseServiceDescriptorBody,
   parseShortEventDescriptorBody,
 } from './arib-std-b10';
-import { db, Event, Service } from './db';
+import { db, Event, Network, Service } from './db';
 
 export const parseEventInformationSectionToUpsertEventDocument = (
   ...args: Parameters<typeof parseEventInformationSectionBody>
@@ -91,6 +92,21 @@ export const parseEventInformationSectionToUpsertEventDocument = (
     } else {
       db.events.insert(eventDoc);
     }
+  }
+};
+
+export const parseNetworkInformationSectionAndUpsertNetworkDocument = (
+  ...args: Parameters<typeof parseNetworkInformationSectionBody>
+): void => {
+  const { networkId } = parseNetworkInformationSectionBody(...args);
+
+  const networkDoc: Network = { networkId };
+
+  const prevNetworkDoc = db.networks.findOne({ networkId: { $eq: networkId } });
+  if (prevNetworkDoc) {
+    db.networks.update({ ...prevNetworkDoc, ...networkDoc });
+  } else {
+    db.networks.insert(networkDoc);
   }
 };
 
