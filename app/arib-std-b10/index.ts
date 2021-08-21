@@ -7,6 +7,7 @@ export { parseServiceDescriptionSectionBody } from 'arib-std-b10/parsers/service
 
 export { parseComponentDescriptorBody } from 'arib-std-b10/parsers/component-descriptor-body';
 export { parseContentDescriptorBody } from 'arib-std-b10/parsers/content-descriptor-body';
+export { parseEventGroupDescriptorBody } from 'arib-std-b10/parsers/event-group-desciptor-body';
 export { parseExtendedEventDescriptorBody } from 'arib-std-b10/parsers/extended-event-descriptor-body';
 export { parseServiceDescriptorBody } from 'arib-std-b10/parsers/service-descriptor-body';
 export { parseShortEventDescriptorBody } from 'arib-std-b10/parsers/short-event-descriptor-body';

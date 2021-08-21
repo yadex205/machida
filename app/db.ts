@@ -2,7 +2,7 @@ import Loki from 'lokijs';
 
 const machidaDb = new Loki('machida');
 
-interface Event {
+export interface Event {
   serviceId: number;
   eventId: number;
   schedule: {
@@ -14,6 +14,11 @@ interface Event {
   detail: Record<string, { subject: string; content: string }[]>;
   additionalDescription: Record<string, string>;
   genres: { genre: number; subGenre: number }[];
+  eventGroups: {
+    type: number;
+    events: { serviceId: number; eventId: number }[];
+    networkEvents?: { originalNetworkId: number; transportStreamId: number; serviceId: number; eventId: number }[];
+  }[];
 }
 
 const events = machidaDb.addCollection<Event>('events', {

@@ -8,13 +8,14 @@ import {
   parseServiceDescriptionSectionBody,
   parseComponentDescriptorBody,
   parseContentDescriptorBody,
+  parseEventGroupDescriptorBody,
   parseExtendedEventDescriptorBody,
   parseServiceDescriptorBody,
   parseShortEventDescriptorBody,
   FileStreamProcessor,
   PsiSiPacketProcessor,
 } from 'arib-std-b10';
-import { db } from 'db';
+import { db, Event } from 'db';
 
 const file = resolve(__dirname, '../test-files/test.ts');
 const fileReadSteram = createReadStream(file, { highWaterMark: 1024 * 256 });
@@ -60,11 +61,12 @@ eitProcessor.on('section', section => {
     const { serviceId } = eventInformation;
 
     eventInformation.events.forEach(event => {
-      const eventNameOfLanguages: Record<string, string> = {};
-      const summaryOfLanguages: Record<string, string> = {};
-      const detailsOfLanguages: Record<string, { subject: string; content: string }[]> = {};
-      const additionalDescriptionOfLanguages: Record<string, string> = {};
-      const genres: { genre: number; subGenre: number }[] = [];
+      const eventNameOfLanguages: Event['name'] = {};
+      const summaryOfLanguages: Event['summary'] = {};
+      const detailsOfLanguages: Event['detail'] = {};
+      const additionalDescriptionOfLanguages: Event['additionalDescription'] = {};
+      const genres: Event['genres'] = [];
+      const eventGroups: Event['eventGroups'] = [];
 
       const descriptors = parseDescriptors(event.descriptors);
       descriptors.forEach(descriptor => {
@@ -82,12 +84,16 @@ eitProcessor.on('section', section => {
           });
           additionalDescriptionOfLanguages[iso639LanguageCode] = text;
         } else if (descriptor.tag === 0x50) {
+          // ?????????????????????
           parseComponentDescriptorBody(descriptor);
         } else if (descriptor.tag === 0x54) {
           const { items } = parseContentDescriptorBody(descriptor);
           items.forEach(({ contentNibbleLevel1, contentNibbleLevel2 }) => {
             genres.push({ genre: contentNibbleLevel1, subGenre: contentNibbleLevel2 });
           });
+        } else if (descriptor.tag === 0xd6) {
+          const { groupType: type, events, networkEvents } = parseEventGroupDescriptorBody(descriptor);
+          eventGroups.push({ type, events, networkEvents });
         } else {
           console.error('Unexpected descriptor', descriptor.tag.toString(16));
         }
@@ -109,6 +115,7 @@ eitProcessor.on('section', section => {
           detail: detailsOfLanguages,
           additionalDescription: additionalDescriptionOfLanguages,
           genres,
+          eventGroups,
         });
       } else {
         db.events.update({
@@ -122,6 +129,7 @@ eitProcessor.on('section', section => {
           detail: detailsOfLanguages,
           additionalDescription: additionalDescriptionOfLanguages,
           genres,
+          eventGroups,
         });
       }
     });
