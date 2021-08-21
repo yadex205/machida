@@ -13,5 +13,6 @@ export { parseExtendedEventDescriptorBody } from 'arib-std-b10/parsers/extended-
 export { parseServiceDescriptorBody } from 'arib-std-b10/parsers/service-descriptor-body';
 export { parseShortEventDescriptorBody } from 'arib-std-b10/parsers/short-event-descriptor-body';
 
+export { ExtendedEventDescriptorProcessor } from 'arib-std-b10/processors/extended-event-descriptor-processor';
 export { FileStreamProcessor } from 'arib-std-b10/processors/file-stream-processor';
 export { PsiSiPacketProcessor } from 'arib-std-b10/processors/psi-si-packet-processor';

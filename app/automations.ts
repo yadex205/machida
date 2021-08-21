@@ -6,9 +6,9 @@ import {
   parseComponentDescriptorBody,
   parseContentDescriptorBody,
   parseEventGroupDescriptorBody,
-  parseExtendedEventDescriptorBody,
   parseServiceDescriptorBody,
   parseShortEventDescriptorBody,
+  ExtendedEventDescriptorProcessor,
 } from './arib-std-b10';
 import { db, Event, Network, Service } from './db';
 
@@ -16,6 +16,7 @@ export const parseEventInformationSectionToUpsertEventDocument = (
   ...args: Parameters<typeof parseEventInformationSectionBody>
 ): void => {
   const { originalNetworkId, transportStreamId, serviceId, events } = parseEventInformationSectionBody(...args);
+  const extendedEventDescriptorProcessor = new ExtendedEventDescriptorProcessor();
 
   for (let eventIndex = 0; eventIndex < events.length; eventIndex++) {
     const { eventId, startTime, duration, descriptors: _descriptors } = events[eventIndex];
@@ -45,14 +46,17 @@ export const parseEventInformationSectionToUpsertEventDocument = (
         eventDoc.name[iso639LanguageCode] = eventName;
         eventDoc.summary[iso639LanguageCode] = text;
       } else if (descriptor.tag === 0x4e) {
-        const { iso639LanguageCode, items, text } = parseExtendedEventDescriptorBody(descriptor);
-        if (!eventDoc.details[iso639LanguageCode]) {
-          eventDoc.details[iso639LanguageCode] = [];
+        const extendedEventDescriptor = extendedEventDescriptorProcessor.feed(descriptor);
+        if (extendedEventDescriptor) {
+          const { iso639LanguageCode, items, text } = extendedEventDescriptor;
+          if (!eventDoc.details[iso639LanguageCode]) {
+            eventDoc.details[iso639LanguageCode] = [];
+          }
+          items.forEach(({ itemDescription, item }) => {
+            eventDoc.details[iso639LanguageCode].push({ subject: itemDescription, content: item });
+          });
+          eventDoc.additionalDescription[iso639LanguageCode] = text;
         }
-        items.forEach(({ itemDescription, item }) => {
-          eventDoc.details[iso639LanguageCode].push({ subject: itemDescription, content: item });
-        });
-        eventDoc.additionalDescription[iso639LanguageCode] = text;
       } else if (descriptor.tag === 0x50) {
         const { streamContent, componentType, componentTag, iso639LanguageCode, text } =
           parseComponentDescriptorBody(descriptor);

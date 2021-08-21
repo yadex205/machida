@@ -43,9 +43,9 @@ interface ExtendedEventDescriptorBody {
   iso639LanguageCode: string;
   items: {
     itemDescription: string;
-    item: string;
+    item: Buffer;
   }[];
-  text: string;
+  text: Buffer;
 }
 
 export function parseExtendedEventDescriptorBody(descriptor: Descriptor): ExtendedEventDescriptorBody {
@@ -59,8 +59,8 @@ export function parseExtendedEventDescriptorBody(descriptor: Descriptor): Extend
     iso639LanguageCode: iso639LanguageCode.toString('latin1'),
     items: items.map(item => ({
       itemDescription: parseAribStdB24(item.itemDescription),
-      item: parseAribStdB24(item.item),
+      item: item.item,
     })),
-    text: parseAribStdB24(text),
+    text: text,
   };
 }
