@@ -2,6 +2,8 @@ import Loki from 'lokijs';
 
 const machidaDb = new Loki('machida');
 
+type Iso639Alpha3Code = string;
+
 export interface Event {
   serviceId: number;
   eventId: number;
@@ -9,10 +11,16 @@ export interface Event {
     start: Date | undefined;
     duration: number | undefined;
   };
-  name: Record<string, string>;
-  summary: Record<string, string>;
-  detail: Record<string, { subject: string; content: string }[]>;
-  additionalDescription: Record<string, string>;
+  name: Record<Iso639Alpha3Code, string>;
+  summary: Record<Iso639Alpha3Code, string>;
+  detail: Record<Iso639Alpha3Code, { subject: string; content: string }[]>;
+  additionalDescription: Record<Iso639Alpha3Code, string>;
+  components: {
+    streamContent: number;
+    componentType: number;
+    componentTag: number;
+    texts: Record<Iso639Alpha3Code, string>;
+  }[];
   genres: { genre: number; subGenre: number }[];
   eventGroups: {
     type: number;
@@ -27,8 +35,4 @@ const events = machidaDb.addCollection<Event>('events', {
 
 export const db = {
   events,
-  printEvents: () => {
-    const eventRecords = events.data;
-    console.table(eventRecords, ['serviceId', 'eventId', 'schedule', 'name']);
-  },
 };

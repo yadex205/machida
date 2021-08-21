@@ -65,6 +65,7 @@ eitProcessor.on('section', section => {
       const summaryOfLanguages: Event['summary'] = {};
       const detailsOfLanguages: Event['detail'] = {};
       const additionalDescriptionOfLanguages: Event['additionalDescription'] = {};
+      const components: Event['components'] = [];
       const genres: Event['genres'] = [];
       const eventGroups: Event['eventGroups'] = [];
 
@@ -84,8 +85,17 @@ eitProcessor.on('section', section => {
           });
           additionalDescriptionOfLanguages[iso639LanguageCode] = text;
         } else if (descriptor.tag === 0x50) {
-          // ?????????????????????
-          parseComponentDescriptorBody(descriptor);
+          const { streamContent, componentType, componentTag, iso639LanguageCode, text } =
+            parseComponentDescriptorBody(descriptor);
+          const existingComponent = components.find(
+            c =>
+              c.streamContent === streamContent && c.componentType === componentType && c.componentTag === componentTag
+          );
+          if (existingComponent) {
+            existingComponent.texts[iso639LanguageCode] = text;
+          } else {
+            components.push({ streamContent, componentType, componentTag, texts: { [iso639LanguageCode]: text } });
+          }
         } else if (descriptor.tag === 0x54) {
           const { items } = parseContentDescriptorBody(descriptor);
           items.forEach(({ contentNibbleLevel1, contentNibbleLevel2 }) => {
@@ -94,8 +104,6 @@ eitProcessor.on('section', section => {
         } else if (descriptor.tag === 0xd6) {
           const { groupType: type, events, networkEvents } = parseEventGroupDescriptorBody(descriptor);
           eventGroups.push({ type, events, networkEvents });
-        } else {
-          console.error('Unexpected descriptor', descriptor.tag.toString(16));
         }
       });
 
@@ -114,6 +122,7 @@ eitProcessor.on('section', section => {
           summary: summaryOfLanguages,
           detail: detailsOfLanguages,
           additionalDescription: additionalDescriptionOfLanguages,
+          components,
           genres,
           eventGroups,
         });
@@ -128,14 +137,11 @@ eitProcessor.on('section', section => {
           summary: summaryOfLanguages,
           detail: detailsOfLanguages,
           additionalDescription: additionalDescriptionOfLanguages,
+          components,
           genres,
           eventGroups,
         });
       }
     });
   }
-});
-
-processor.on('end', () => {
-  // db.printEvents();
 });
