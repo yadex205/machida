@@ -9,7 +9,7 @@ interface BinaryStructure {
   lastSectionNumber: number;
   descriptorsLength: number;
   descriptors: Buffer;
-  transportStreamsLoopLength: number;
+  transportStreamsLength: number;
   transportStreams: {
     transportStreamId: number;
     originalNetworkId: number;
@@ -26,14 +26,14 @@ const binaryStructureParser = new BinaryStructureParser<BinaryStructure, PsiSiSe
   { id: 'sectionNumber', type: 'uint', bitLength: 8 },
   { id: 'lastSectionNumber', type: 'uint', bitLength: 8 },
   { type: 'ignore', bitLength: 4 },
-  { id: 'descriptorsLoopLength', type: 'uint', bitLength: 12 },
+  { id: 'descriptorsLength', type: 'uint', bitLength: 12 },
   { id: 'descriptors', type: 'raw', bitLength: v => v.descriptorsLength * 8 },
   { type: 'ignore', bitLength: 4 },
-  { id: 'transportStreamLoopLength', type: 'uint', bitLength: 12 },
+  { id: 'transportStreamsLength', type: 'uint', bitLength: 12 },
   {
     id: 'transportStreams',
     type: 'array',
-    bitLength: v => v.transportStreamsLoopLength * 8,
+    bitLength: v => v.transportStreamsLength * 8,
     children: [
       { id: 'transportStreamId', type: 'uint', bitLength: 16 },
       { id: 'originalNetworkId', type: 'uint', bitLength: 16 },
