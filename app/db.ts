@@ -5,15 +5,15 @@ const machidaDb = new Loki('machida');
 type Iso639Alpha3Code = string;
 
 export interface Event {
+  originalNetworkId: number;
+  transportStreamId: number;
   serviceId: number;
   eventId: number;
-  schedule: {
-    start: Date | undefined;
-    duration: number | undefined;
-  };
+  startTime: Date | undefined;
+  duration: number | undefined;
   name: Record<Iso639Alpha3Code, string>;
   summary: Record<Iso639Alpha3Code, string>;
-  detail: Record<Iso639Alpha3Code, { subject: string; content: string }[]>;
+  details: Record<Iso639Alpha3Code, { subject: string; content: string }[]>;
   additionalDescription: Record<Iso639Alpha3Code, string>;
   components: {
     streamContent: number;
@@ -29,10 +29,24 @@ export interface Event {
   }[];
 }
 
+export interface Service {
+  originalNetworkId: number;
+  transportStreamId: number;
+  serviceId: number;
+  name?: string;
+  serviceType?: number;
+  serviceProviderName?: string;
+}
+
 const events = machidaDb.addCollection<Event>('events', {
-  indices: ['serviceId', 'eventId'],
+  indices: ['originalNetworkId', 'transportStreamId', 'serviceId', 'eventId'],
+});
+
+const services = machidaDb.addCollection<Service>('services', {
+  indices: ['originalNetworkId', 'transportStreamId', 'serviceId'],
 });
 
 export const db = {
   events,
+  services,
 };
