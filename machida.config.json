@@ -1,0 +1,52 @@
+{
+  "server": {
+    "port": 20561
+  },
+  "transcode": {
+    "commands": {
+      "stdioToHls": "ffmpeg -hide_banner -y -init_hw_device qsv=qsv:hw -hwaccel qsv -filter_hw_device qsv -fflags +discardcorrupt -ignore_unknown -re -c:v mpeg2_qsv -i pipe:0 -map 0:v:0 -map 0:a:0 -movflags +faststart -f hls -hls_flags delete_segments -hls_time 0 -hls_allow_cache 0 -c:v h264_qsv -g 120 -profile:v high -preset veryfast -q:v 25 -vf vpp_qsv=deinterlace=1:framerate=30000/1001:w=960:h=720 -c:a copy ${m3u8Output}"
+    }
+  },
+  "tuners": [
+    {
+      "name": "BSCS0",
+      "types": ["BS", "CS"],
+      "dvbDevicePath": "/dev/px4video0"
+    },
+    {
+      "name": "BSCS1",
+      "types": ["BS", "CS"],
+      "dvbDevicePath": "/dev/px4video1"
+    },
+    {
+      "name": "GR0",
+      "types": ["GR"],
+      "dvbDevicePath": "/dev/px4video2"
+    },
+    {
+      "name": "GR1",
+      "types": ["GR"],
+      "dvbDevicePath": "/dev/px4video3"
+    },
+    {
+      "name": "BSCS2",
+      "types": ["BS", "CS"],
+      "dvbDevicePath": "/dev/px4video4"
+    },
+    {
+      "name": "BSCS3",
+      "types": ["CS", "CS"],
+      "dvbDevicePath": "/dev/px4video5"
+    },
+    {
+      "name": "GR2",
+      "types": ["GR"],
+      "dvbDevicePath": "/dev/px4video6"
+    },
+    {
+      "name": "GR3",
+      "types": ["GR"],
+      "dvbDevicePath": "/dev/px4video7"
+    }
+  ]
+}

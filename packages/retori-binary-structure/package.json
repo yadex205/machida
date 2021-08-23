@@ -1,0 +1,17 @@
+{
+  "name": "@retori/binary-structure",
+  "version": "0.0.0",
+  "description": "Define binary structure and parse data for Retori.",
+  "author": "Kanon Kakuno <yadex205@outlook.jp>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yadex205/retori.git",
+    "directory": "packages/retori-binary-structure"
+  },
+  "homepage": "https://github.com/yadex205/retori#readme",
+  "bugs": {
+    "url": "https://github.com/yadex205/retori/issues"
+  },
+  "main": "lib/index.js"
+}

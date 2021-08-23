@@ -1,12 +1,8 @@
 {
-  "include": ["scripts/**/*.ts", "packages/**/*.ts"],
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
     "baseUrl": ".",
-    "paths": {
-      "@retori/binary-structure": ["./packages/retori-binary-structure/src"]
-    },
     "lib": ["esnext"],
     "strict": true,
     "resolveJsonModule": true,

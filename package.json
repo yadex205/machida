@@ -1,37 +1,50 @@
 {
-  "name": "machida",
+  "name": "retori",
   "version": "0.0.0",
   "description": "",
+  "author": "Kanon Kakuno <yadex205@outlook.jp>",
+  "license": "MIT",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yadex205/machida.git"
   },
-  "author": "Kanon Kakuno <yadex205@outlook.jp>",
-  "license": "MIT",
+  "homepage": "https://github.com/yadex205/machida#readme",
   "bugs": {
     "url": "https://github.com/yadex205/machida/issues"
   },
-  "homepage": "https://github.com/yadex205/machida#readme",
+  "engines": {
+    "node": ">=16.7.0",
+    "npm": ">=7.21.0"
+  },
+  "workspaces": [
+    "./packages/retori-binary-structure"
+  ],
   "scripts": {
+    "build": "ts-node-script -T -r tsconfig-paths/register ./scripts/build.ts",
     "start:dev": "ts-node -T -r tsconfig-paths/register src/server/index.ts",
     "create-arib-std-b24-convert-tables": "ts-node -T -r tsconfig-paths/register scripts/create-arib-std-b24-convert-tables.ts",
     "lint": "eslint ./app --ext .ts --color"
   },
   "dependencies": {
     "csv-parse": "^4.15.3",
-    "lokijs": "^1.5.12",
-    "ts-node": "^9.1.1",
-    "tsconfig-paths": "^3.9.0",
-    "typescript": "^4.1.5"
+    "fastify": "^3.20.2",
+    "fastify-static": "^4.2.3",
+    "fastify-websocket": "^3.2.1",
+    "lokijs": "^1.5.12"
   },
   "devDependencies": {
     "@types/lokijs": "^1.5.5",
     "@types/node": "^16.7.1",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
+    "esbuild": "^0.12.22",
     "eslint": "^7.26.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.23.2",
-    "prettier": "^2.3.0"
+    "prettier": "^2.3.0",
+    "ts-node": "^10.2.1",
+    "tsconfig-paths": "^3.10.1",
+    "typescript": "^4.3.5"
   }
 }
