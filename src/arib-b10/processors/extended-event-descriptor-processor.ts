@@ -1,4 +1,4 @@
-import { parseAribStdB24 } from 'lib/arib-std-b24';
+import { parseAribStdB24 } from 'arib-b24';
 
 import { Descriptor } from '../parsers/descriptors';
 import { parseExtendedEventDescriptorBody } from '../parsers/extended-event-descriptor-body';

@@ -1,11 +1,11 @@
 {
-  "include": ["scripts/**/*.ts", "packages/**/*.ts"],
+  "include": ["scripts/**/*.ts", "src/**/*.ts"],
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
     "baseUrl": ".",
     "paths": {
-      "@retori/binary-structure": ["./packages/retori-binary-structure/src"]
+      "*": ["src/*"]
     },
     "lib": ["esnext"],
     "strict": true,

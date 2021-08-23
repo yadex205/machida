@@ -1,5 +1,5 @@
-import { parseAribStdB24 } from 'lib/arib-std-b24';
-import { BinaryStructureParser } from 'lib/binary-structure';
+import { parseAribStdB24 } from 'arib-b24';
+import { BinaryStructureParser } from 'binary-structure';
 
 import { Descriptor } from './descriptors';
 

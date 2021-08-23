@@ -4,7 +4,7 @@ import { resolve } from 'path';
 
 const jisx0213Table: Record<number, string> = {};
 const jisx0213TableResourceFile = resolve(__dirname, '../resources/jisx0213-2004-8bit-std.txt');
-const jisx0213TableTsFile = resolve(__dirname, '../app/arib-std-b24/jisx0213.ts');
+const jisx0213TableTsFile = resolve(__dirname, '../src/arib-b24/jisx0213.ts');
 const jisx0213TableParser = parse({
   columns: ['jis', 'unicode'],
   comment: '#',

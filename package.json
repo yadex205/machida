@@ -1,8 +1,8 @@
 {
   "name": "retori",
   "version": "0.0.0",
-  "description": "",
-  "author": "Kanon Kakuno <yadex205@outlook.jp>",
+  "description": "A yet another software for Japanese DTV",
+  "author": "Yadex205 (https://twitter.com/yadex205_vj)",
   "license": "MIT",
   "private": true,
   "repository": {
@@ -17,11 +17,7 @@
     "node": ">=16.7.0",
     "npm": ">=7.21.0"
   },
-  "workspaces": [
-    "./packages/retori-binary-structure"
-  ],
   "scripts": {
-    "build": "ts-node-script -T -r tsconfig-paths/register ./scripts/build.ts",
     "start:dev": "ts-node -T -r tsconfig-paths/register src/server/index.ts",
     "create-arib-std-b24-convert-tables": "ts-node -T -r tsconfig-paths/register scripts/create-arib-std-b24-convert-tables.ts",
     "lint": "eslint ./app --ext .ts --color"
@@ -31,10 +27,12 @@
     "fastify": "^3.20.2",
     "fastify-static": "^4.2.3",
     "fastify-websocket": "^3.2.1",
-    "lokijs": "^1.5.12"
+    "lokijs": "^1.5.12",
+    "mustache": "^4.2.0"
   },
   "devDependencies": {
     "@types/lokijs": "^1.5.5",
+    "@types/mustache": "^4.1.2",
     "@types/node": "^16.7.1",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
