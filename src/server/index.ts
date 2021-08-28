@@ -4,8 +4,14 @@
 
 import fastifyFactory from 'fastify';
 
-const fastify = fastifyFactory();
+import { getConfig } from 'retori-config';
 
-fastify.get(/);
-
-fastify.listen(20561);
+(async () => {
+  const config = await getConfig();
+})();
+//
+// const fastify = fastifyFactory();
+//
+// fastify.get(/);
+//
+// fastify.listen(20561);

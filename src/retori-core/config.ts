@@ -2,7 +2,7 @@ import path from 'path';
 
 import Conf from 'conf';
 
-interface Config {
+export interface RetoriConfig {
   server: {
     port: number;
   };
@@ -13,7 +13,7 @@ interface Config {
   };
   tuners: {
     name: string;
-    types: 'GR' | 'BS' | 'CS';
+    types: ('GR' | 'BS' | 'CS')[];
     commands: {
       allServicesToStdout: string;
       singleServiceToStdout: string;
@@ -21,7 +21,7 @@ interface Config {
   }[];
 }
 
-const configHandler = new Conf<Config>({
+const configHandler = new Conf<RetoriConfig>({
   schema: {
     server: {
       type: 'object',
@@ -87,11 +87,16 @@ const configHandler = new Conf<Config>({
 // @TODO Implement correct resolver
 const resolveConfigPath = () => path.join(process.cwd(), 'retori.config.json');
 
-const getConfig = async () => {
-  const configPath = resolveConfigPath();
-  const rawConfig = await import(configPath);
+let cachedConfig: RetoriConfig;
 
-  configHandler.set(rawConfig);
+export const getConfig = async () => {
+  if (cachedConfig) {
+    return cachedConfig;
+  } else {
+    const configPath = resolveConfigPath();
+    const rawConfig = await import(configPath);
+    configHandler.set(rawConfig);
 
-  return configHandler.store;
+    return (cachedConfig = configHandler.store);
+  }
 };
