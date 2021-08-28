@@ -3,6 +3,7 @@ import EventEmitter from 'events';
 import { Readable } from 'stream';
 
 import Mustache from 'mustache';
+import { parseArgsStringToArgv } from 'string-argv';
 
 interface TunerConstructorArgs {
   name: string;
@@ -27,7 +28,19 @@ export class Tuner extends EventEmitter {
     this.commands = args.commands;
   }
 
-  public start() {}
+  public start(channel: number, sid?: number) {
+    let args = '';
+
+    if (typeof sid !== 'number') {
+      args = Mustache.render(this.commands.allServicesToStdout, { channel });
+    } else {
+      args = Mustache.render(this.commands.singleServiceToStdout, { channel, sid });
+    }
+
+    const [binName, ...argv] = parseArgsStringToArgv(args);
+
+    this.process = childProcess.spawn(binName, argv, { stdio: ['ignore', 'pipe', 'inherit'] });
+  }
 
   public stop() {}
 

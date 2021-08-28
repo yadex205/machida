@@ -20,7 +20,8 @@
   "scripts": {
     "start:dev": "ts-node -T -r tsconfig-paths/register src/server/index.ts",
     "create-arib-std-b24-convert-tables": "ts-node -T -r tsconfig-paths/register scripts/create-arib-std-b24-convert-tables.ts",
-    "lint": "eslint ./app --ext .ts --color"
+    "lint": "eslint ./app --ext .ts --color",
+    "test": "jest"
   },
   "dependencies": {
     "conf": "^10.0.2",
@@ -30,19 +31,21 @@
     "fastify-websocket": "^3.2.1",
     "lokijs": "^1.5.12",
     "mustache": "^4.2.0",
-    "yargs": "^17.1.1"
+    "string-argv": "^0.3.1"
   },
   "devDependencies": {
+    "@swc/jest": "^0.2.2",
+    "@types/jest": "^27.0.1",
     "@types/lokijs": "^1.5.5",
     "@types/mustache": "^4.1.2",
     "@types/node": "^16.7.1",
-    "@types/yargs": "^17.0.2",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
     "esbuild": "^0.12.22",
     "eslint": "^7.26.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.23.2",
+    "jest": "^27.1.0",
     "prettier": "^2.3.2",
     "ts-node": "^10.2.1",
     "tsconfig-paths": "^3.10.1",
