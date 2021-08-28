@@ -1,4 +1,4 @@
-import { BinaryStructureParser } from 'lib/binary-structure';
+import { BinaryStructureParser } from 'binary-structure';
 
 import { Descriptor } from './descriptors';
 

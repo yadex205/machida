@@ -1,4 +1,4 @@
-import { BinaryStructureParser } from 'lib/binary-structure';
+import { BinaryStructureParser } from 'binary-structure';
 
 import { parseDate, parseDurationSeconds } from './datetime';
 import { PsiSiSection } from './psi-si-section';
