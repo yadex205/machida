@@ -9,12 +9,10 @@ import { extractAribNetworkFromNetworkInformationSection, AribNetwork } from '..
 import { extractAribServicesFromServiceDescriptionSection, AribService } from '../models/arib-service';
 import { Tuner } from '../tuner';
 
-// const DEFAULT_TERRESTRIAL_BROADCAST_CHANNELS = [
-//   13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
-//   42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62,
-// ];
-
-const DEFAULT_TERRESTRIAL_BROADCAST_CHANNELS = [16, 17, 19, 21, 22, 23, 24, 25, 26, 27, 30, 31, 32];
+const DEFAULT_TERRESTRIAL_BROADCAST_CHANNELS = [
+  13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
+  42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62,
+];
 
 export class UpdateTerrestrialEpgWorker extends EventEmitter {
   public perform = async () => {
@@ -148,7 +146,6 @@ export class UpdateTerrestrialEpgWorker extends EventEmitter {
       }
     }
 
-    console.log(db.aribEvents.data);
     Tuner.release(tuner);
   };
 }
