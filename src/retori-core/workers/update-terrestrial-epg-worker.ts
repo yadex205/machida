@@ -22,30 +22,32 @@ export class UpdateTerrestrialEpgWorker extends EventEmitter {
     Tuner.occupy(tuner);
 
     for (const channel of channels) {
-      console.log(channel);
+      try {
+        await tuner.start(channel);
+        if (!tuner.readableStream) {
+          throw new Error("Tuner's readableStream is not available.");
+        }
 
-      await tuner.start(channel);
-      if (!tuner.readableStream) {
-        throw new Error("Tuner's readableStream is not available.");
+        const fileProcessor = new FileStreamProcessor(tuner.readableStream);
+        const eitProcessor = new PsiSiPacketProcessor();
+
+        fileProcessor.on('packet', packet => {
+          if (packet.pid === 0x0012) {
+            eitProcessor.feed(packet);
+          }
+        });
+
+        eitProcessor.on('section', section => {
+          if (section.tableId >= 0x4e && section.tableId <= 0x6f) {
+            saveEventsFromEventInformationSection(section);
+          }
+        });
+
+        await promiseTimers.setTimeout(5000);
+        await tuner.stop();
+      } catch {
+        continue;
       }
-
-      const fileProcessor = new FileStreamProcessor(tuner.readableStream);
-      const eitProcessor = new PsiSiPacketProcessor();
-
-      fileProcessor.on('packet', packet => {
-        if (packet.pid === 0x0012) {
-          eitProcessor.feed(packet);
-        }
-      });
-
-      eitProcessor.on('section', section => {
-        if (section.tableId >= 0x4e && section.tableId <= 0x6f) {
-          saveEventsFromEventInformationSection(section);
-        }
-      });
-
-      await promiseTimers.setTimeout(5000);
-      await tuner.stop();
     }
 
     Tuner.release(tuner);

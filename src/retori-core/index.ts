@@ -5,5 +5,9 @@ export class Retori {
   public initialize = async () => {
     // TODO: This class shouldn't use getConfig by itself.
     const config = await getConfig();
+
+    config.tuners.forEach(tunerArgs => {
+      Tuner.register(tunerArgs);
+    });
   };
 }
