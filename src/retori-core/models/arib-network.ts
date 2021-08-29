@@ -34,6 +34,10 @@ export const extractAribNetworkFromNetworkInformationSection = (
       serviceList.forEach(({ serviceId, serviceType }) => {
         aribNetwork.services.push({ serviceId, serviceType });
       });
+    } else if (descriptor.tag === 0xcd) {
+      console.log(
+        'TS情報記述子あった！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！'
+      );
     }
   });
 

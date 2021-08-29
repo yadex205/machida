@@ -1,6 +1,7 @@
 export { parsePacket } from './parsers/packet';
 export { parseDescriptors } from './parsers/descriptors';
 
+export { parseBouquetAssociationSectionBody } from './parsers/bouquet-association-section-body';
 export { parseEventInformationSectionBody } from './parsers/event-information-section-body';
 export { parseNetworkInformationSectionBody } from './parsers/network-information-section-body';
 export { parseProgramAssociationSectionBody } from './parsers/program-association-section-body';

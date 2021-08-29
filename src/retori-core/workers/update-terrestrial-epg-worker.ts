@@ -9,16 +9,17 @@ import { extractAribNetworkFromNetworkInformationSection, AribNetwork } from '..
 import { extractAribServicesFromServiceDescriptionSection, AribService } from '../models/arib-service';
 import { Tuner } from '../tuner';
 
-const DEFAULT_TERRESTRIAL_BROADCAST_CHANNELS = [
-  13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
-  42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62,
-];
+// const DEFAULT_TERRESTRIAL_BROADCAST_CHANNELS = [
+//   13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
+//   42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62,
+// ];
+
+const DEFAULT_TERRESTRIAL_BROADCAST_CHANNELS = [16, 17, 19, 21, 22, 23, 24, 25, 26, 27, 30, 31, 32];
 
 export class UpdateTerrestrialEpgWorker extends EventEmitter {
   public perform = async () => {
-    // const channels = DEFAULT_TERRESTRIAL_BROADCAST_CHANNELS;
-    const channels = [27];
-    const listenDuration = 10000;
+    const channels = DEFAULT_TERRESTRIAL_BROADCAST_CHANNELS;
+    const listenDuration = 20000;
     const tuner = Tuner.findAvailableTuner('GR');
     if (!tuner) {
       throw new Error('Cannot find available tuner.');
@@ -38,7 +39,9 @@ export class UpdateTerrestrialEpgWorker extends EventEmitter {
         }
 
         const fileProcessor = new FileStreamProcessor(tuner.readableStream);
-        const eitProcessor = new PsiSiPacketProcessor();
+        const eitProcessor01 = new PsiSiPacketProcessor();
+        const eitProcessor02 = new PsiSiPacketProcessor();
+        const eitProcessor03 = new PsiSiPacketProcessor();
         const nitProcessor = new PsiSiPacketProcessor();
         const sdtBatProcessor = new PsiSiPacketProcessor();
 
@@ -48,11 +51,35 @@ export class UpdateTerrestrialEpgWorker extends EventEmitter {
           } else if (packet.pid === 0x0011) {
             sdtBatProcessor.feed(packet);
           } else if (packet.pid === 0x0012) {
-            eitProcessor.feed(packet);
+            eitProcessor01.feed(packet);
+          } else if (packet.pid === 0x0026) {
+            eitProcessor02.feed(packet);
+          } else if (packet.pid === 0x0027) {
+            eitProcessor03.feed(packet);
           }
         });
 
-        eitProcessor.on('section', section => {
+        eitProcessor01.on('section', section => {
+          if (section.tableId >= 0x4e && section.tableId <= 0x6f) {
+            const extractedAribEvents = extractAribEventsFromEventInformationSection(section);
+            extractedAribEvents.forEach(aribEvent => {
+              const key = `${aribEvent.serviceId}/${aribEvent.eventId}`;
+              aribEvents.set(key, aribEvent);
+            });
+          }
+        });
+
+        eitProcessor02.on('section', section => {
+          if (section.tableId >= 0x4e && section.tableId <= 0x6f) {
+            const extractedAribEvents = extractAribEventsFromEventInformationSection(section);
+            extractedAribEvents.forEach(aribEvent => {
+              const key = `${aribEvent.serviceId}/${aribEvent.eventId}`;
+              aribEvents.set(key, aribEvent);
+            });
+          }
+        });
+
+        eitProcessor03.on('section', section => {
           if (section.tableId >= 0x4e && section.tableId <= 0x6f) {
             const extractedAribEvents = extractAribEventsFromEventInformationSection(section);
             extractedAribEvents.forEach(aribEvent => {
@@ -121,9 +148,7 @@ export class UpdateTerrestrialEpgWorker extends EventEmitter {
       }
     }
 
-    Tuner.release(tuner);
     console.log(db.aribEvents.data);
-    console.log(db.aribServices.data);
-    console.log(db.aribNetworks.data);
+    Tuner.release(tuner);
   };
 }
