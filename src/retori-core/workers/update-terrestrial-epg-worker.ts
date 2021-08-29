@@ -16,7 +16,9 @@ const DEFAULT_TERRESTRIAL_BROADCAST_CHANNELS = [
 
 export class UpdateTerrestrialEpgWorker extends EventEmitter {
   public perform = async () => {
-    const channels = DEFAULT_TERRESTRIAL_BROADCAST_CHANNELS;
+    // const channels = DEFAULT_TERRESTRIAL_BROADCAST_CHANNELS;
+    const channels = [27];
+    const listenDuration = 10000;
     const tuner = Tuner.findAvailableTuner('GR');
     if (!tuner) {
       throw new Error('Cannot find available tuner.');
@@ -78,7 +80,7 @@ export class UpdateTerrestrialEpgWorker extends EventEmitter {
           }
         });
 
-        await promiseTimers.setTimeout(5000);
+        await promiseTimers.setTimeout(listenDuration);
         await tuner.stop();
       } catch {
         continue;

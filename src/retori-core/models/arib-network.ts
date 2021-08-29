@@ -1,13 +1,41 @@
-import { parseNetworkInformationSectionBody } from 'arib-b10';
+import {
+  parseNetworkInformationSectionBody,
+  parseDescriptors,
+  parseNetworkNameDescriptorBody,
+  parseServiceListDescriptorBody,
+} from 'arib-b10';
 
 export interface AribNetwork {
   networkId: number;
+  name: string;
+  services: {
+    serviceId: number;
+    serviceType: number;
+  }[];
 }
 
 export const extractAribNetworkFromNetworkInformationSection = (
   ...args: Parameters<typeof parseNetworkInformationSectionBody>
 ): AribNetwork => {
-  const { networkId } = parseNetworkInformationSectionBody(...args);
+  const { networkId, descriptors: descriptorsRawData } = parseNetworkInformationSectionBody(...args);
 
-  return { networkId };
+  const aribNetwork: AribNetwork = {
+    networkId,
+    name: '',
+    services: [],
+  };
+
+  parseDescriptors(descriptorsRawData).forEach(descriptor => {
+    if (descriptor.tag === 0x40) {
+      const { networkName } = parseNetworkNameDescriptorBody(descriptor);
+      aribNetwork.name = networkName;
+    } else if (descriptor.tag === 0x41) {
+      const { serviceList } = parseServiceListDescriptorBody(descriptor);
+      serviceList.forEach(({ serviceId, serviceType }) => {
+        aribNetwork.services.push({ serviceId, serviceType });
+      });
+    }
+  });
+
+  return aribNetwork;
 };
