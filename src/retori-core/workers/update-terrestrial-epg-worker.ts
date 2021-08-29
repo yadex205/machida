@@ -3,7 +3,10 @@ import promiseTimers from 'timers/promises';
 
 import { FileStreamProcessor, PsiSiPacketProcessor } from 'arib-b10';
 
-import { getAllEvents, saveEventsFromEventInformationSection } from '../models/event';
+import { epgDatabase as db } from '../db';
+import { extractAribEventsFromEventInformationSection, AribEvent } from '../models/arib-event';
+import { extractAribNetworkFromNetworkInformationSection, AribNetwork } from '../models/arib-network';
+import { extractAribServicesFromServiceDescriptionSection, AribService } from '../models/arib-service';
 import { Tuner } from '../tuner';
 
 const DEFAULT_TERRESTRIAL_BROADCAST_CHANNELS = [
@@ -22,6 +25,10 @@ export class UpdateTerrestrialEpgWorker extends EventEmitter {
     Tuner.occupy(tuner);
 
     for (const channel of channels) {
+      const aribEvents = new Map<string, AribEvent>();
+      const aribNetworks = new Map<string, AribNetwork>();
+      const aribServices = new Map<string, AribService>();
+
       try {
         await tuner.start(channel);
         if (!tuner.readableStream) {
@@ -30,16 +37,44 @@ export class UpdateTerrestrialEpgWorker extends EventEmitter {
 
         const fileProcessor = new FileStreamProcessor(tuner.readableStream);
         const eitProcessor = new PsiSiPacketProcessor();
+        const nitProcessor = new PsiSiPacketProcessor();
+        const sdtBatProcessor = new PsiSiPacketProcessor();
 
         fileProcessor.on('packet', packet => {
-          if (packet.pid === 0x0012) {
+          if (packet.pid == 0x0010) {
+            nitProcessor.feed(packet);
+          } else if (packet.pid === 0x0011) {
+            sdtBatProcessor.feed(packet);
+          } else if (packet.pid === 0x0012) {
             eitProcessor.feed(packet);
           }
         });
 
         eitProcessor.on('section', section => {
           if (section.tableId >= 0x4e && section.tableId <= 0x6f) {
-            saveEventsFromEventInformationSection(section);
+            const extractedAribEvents = extractAribEventsFromEventInformationSection(section);
+            extractedAribEvents.forEach(aribEvent => {
+              const key = `${aribEvent.serviceId}/${aribEvent.eventId}`;
+              aribEvents.set(key, aribEvent);
+            });
+          }
+        });
+
+        nitProcessor.on('section', section => {
+          if (section.tableId === 0x40 || section.tableId === 0x41) {
+            const extractedAribNetwork = extractAribNetworkFromNetworkInformationSection(section);
+            const key = extractedAribNetwork.networkId.toString();
+            aribNetworks.set(key, extractedAribNetwork);
+          }
+        });
+
+        sdtBatProcessor.on('section', section => {
+          if (section.tableId === 0x42 || section.tableId === 0x46) {
+            const extractedAribServices = extractAribServicesFromServiceDescriptionSection(section);
+            extractedAribServices.forEach(aribService => {
+              const key = aribService.serviceId.toString();
+              aribServices.set(key, aribService);
+            });
           }
         });
 
@@ -48,9 +83,45 @@ export class UpdateTerrestrialEpgWorker extends EventEmitter {
       } catch {
         continue;
       }
+
+      for (const aribEvent of aribEvents.values()) {
+        const existingAribEvent = db.aribEvents.findOne({
+          serviceId: { $eq: aribEvent.serviceId },
+          eventId: { $eq: aribEvent },
+        });
+        if (existingAribEvent) {
+          db.aribEvents.update({ ...existingAribEvent, ...aribEvent });
+        } else {
+          db.aribEvents.insert(aribEvent);
+        }
+      }
+
+      for (const aribNetwork of aribNetworks.values()) {
+        const existingAribNetwork = db.aribNetworks.findOne({
+          networkId: { $eq: aribNetwork.networkId },
+        });
+        if (existingAribNetwork) {
+          db.aribNetworks.update({ ...existingAribNetwork, ...aribNetwork });
+        } else {
+          db.aribNetworks.insert(aribNetwork);
+        }
+      }
+
+      for (const aribService of aribServices.values()) {
+        const existingAribService = db.aribServices.findOne({
+          serviceId: { $eq: aribService.serviceId },
+        });
+        if (existingAribService) {
+          db.aribServices.update({ ...existingAribService, ...aribService });
+        } else {
+          db.aribServices.insert(aribService);
+        }
+      }
     }
 
     Tuner.release(tuner);
-    console.log(getAllEvents());
+    console.log(db.aribEvents.data);
+    console.log(db.aribServices.data);
+    console.log(db.aribNetworks.data);
   };
 }
